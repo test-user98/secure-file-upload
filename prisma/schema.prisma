@@ -1,0 +1,39 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id             Int      @id @default(autoincrement())
+  email          String   
+  password       String
+  role           Int
+}
+
+
+model File {
+  id          Int      @id @default(autoincrement())
+  name        String
+  content     Bytes   
+  encrypted   Boolean  @default(true)
+  iv          Bytes
+  ownerId      Int?
+  ownerEmail   String?
+  createdAt   DateTime @default(now())
+  slug         String   @unique
+  type         String 
+}
+
+
+
+model SharedLink {
+  id          Int      @id @default(autoincrement())
+  fileId      Int
+  token       String   @unique // Secure one-time link token
+  expiresAt   DateTime // Expiration time for the link
+  createdAt   DateTime @default(now())
+}
