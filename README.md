@@ -19,6 +19,9 @@ This API provides a robust file management system with functionality for uploadi
     - Share files with guests via shareable links.
   - **Guest**:
     - Download files shared via links, subject to expiration.
+  - **Register**
+    user can register, has an OTP sent via email, with 5mins expiration
+    Using JWY for authorisation of user.
 
 ### Getting Started
 #### Prerequisites
