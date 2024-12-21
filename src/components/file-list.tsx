@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { QueryClient, useMutation, useQuery } from '@tanstack/react-query'
@@ -12,8 +12,7 @@ import { Trash } from 'lucide-react'
 const queryClient = new QueryClient();
 
 export default function FileList() {
-
-  const filesQuey = useQuery({
+  const filesQuery = useQuery({
     queryKey: ['files'],
     queryFn: async () => {
       const { data } = await axios.get("/api/files");
@@ -23,15 +22,17 @@ export default function FileList() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      queryClient?.setQueryData(['files'], filesQuey?.data?.filter((file: File) => file?.id));
+      queryClient?.setQueryData(['files'], filesQuery?.data?.filter((file: File) => file?.id !== id));
       await axios.delete(`/api/files?id=${id}`);
     },
-    onSuccess:()=>{
-      filesQuey?.refetch();
+    onSuccess: () => {
+      filesQuery?.refetch();
     }
   })
 
-
+  useEffect(() => {
+    filesQuery.refetch();
+  }, []);
 
   return (
     <div>
@@ -41,10 +42,11 @@ export default function FileList() {
             <TableHead>Name</TableHead>
             <TableHead>Link</TableHead>
             <TableHead>Action</TableHead>
+            <TableHead>Delete</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {filesQuey?.data?.map((file: File) => (
+          {filesQuery?.data?.map((file: File) => (
             <TableRow key={file?.slug}>
               <TableCell>{file?.name}</TableCell>
               <TableCell>{`${process.env.NEXT_PUBLIC_APPLICATION_URL}/download/${file?.slug}`}</TableCell>

@@ -5,18 +5,19 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import axios from 'axios'
 import { LinkDialog } from './linkdialog/linkdialog'
-import { QueryClient, useMutation } from '@tanstack/react-query'
+import { QueryClient, useMutation, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { LoaderCircle } from 'lucide-react'
 import { userSession } from '@/types/types'
 import { useDispatch } from 'react-redux'
 import { login } from '@/store/slice/user.slice'
-const queryClient = new QueryClient();
-export default function FileUpload({ session }: { session: userSession }) {
+
+export default function FileUpload({ session, onUploadSuccess }: { session: userSession, onUploadSuccess: () => void }) {
   const [file, setFile] = useState<File | null>(null)
   const [dialogStatus, setDialogStatus] = useState(false);
   const [URL, setURL] = useState("");
   const dispatch = useDispatch();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     dispatch(login({
@@ -25,7 +26,8 @@ export default function FileUpload({ session }: { session: userSession }) {
       id: session?._id,
       role: session?.role
     }))
-  }, [session])
+  }, [session, dispatch])
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       setFile(e.target.files[0])
@@ -44,19 +46,20 @@ export default function FileUpload({ session }: { session: userSession }) {
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["files"],
-        exact:true,
-        type:"all"
+        exact: true,
+        type: "all"
       })
       setFile(null);
       setDialogStatus(true);
       toast.success("file uploaded")
+      onUploadSuccess();
     },
     onError: () => {
       console.log("something went wrong");
-
+      toast.error("File upload failed");
     }
-
   })
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-center w-full">

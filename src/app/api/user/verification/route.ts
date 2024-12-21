@@ -1,12 +1,8 @@
 import { PrismaClient } from '@prisma/client';
-import redis from 'ioredis'
 import { NextRequest, NextResponse } from "next/server";
-import nodemailer from 'nodemailer'
-const redisClient = new redis({
-    host: 'redis-16657.c9.us-east-1-4.ec2.redns.redis-cloud.com',
-    password: 'aaCEXLVpWhzwd8cwyb0MOFy8SdEtdvOJ',
-    port: 16657
-})
+import nodemailer from 'nodemailer';
+import { redis } from '@/lib/redis';
+
 const prisma = new PrismaClient();
 
 const transporter = nodemailer.createTransport({
@@ -18,29 +14,55 @@ const transporter = nodemailer.createTransport({
 });
 
 export const POST = async (req: NextRequest) => {
-    const body = await req.json();
-    const { email, password } = body;
-    const otp = Math.floor(100000 + Math.random() * 900000);
-    const user = await prisma.user.findFirst({
-        where: {
-            email: email,
+    try {
+        const body = await req.json();
+        const { email, password } = body;
+
+        // Check if email and password are provided
+        if (!email || !password) {
+            return NextResponse.json({
+                message: "Email and password are required"
+            }, {
+                status: 400
+            });
         }
-    });
-    if (!user || user?.password != password)
+
+        // Fetch user from database based on email using findFirst
+        const user = await prisma.user.findFirst({
+            where: { email },
+        });
+
+        if (!user || user.password !== password) {
+            return NextResponse.json({
+                message: "Invalid email or password"
+            }, {
+                status: 401
+            });
+        }
+
+        // Generate OTP
+        const otp = Math.floor(100000 + Math.random() * 900000);
+
+        // Store OTP in Redis with a 5-minute expiration
+        await redis.set(`OTP:${user.id}`, otp.toString(), 'EX', 300);
+
+        await transporter.sendMail({
+            to: email,
+            from: process.env.ADMIN_EMAIL,
+            subject: "Your Login OTP at File Secure Share APP",
+            text: `Your OTP is: ${otp}, valid for 5 minutes`
+        });
+
         return NextResponse.json({
-            message: "Invalid Email Password"
+            message: "Success",
+            userId: user.id
+        });
+    } catch (error) {
+        console.error('Login error:', error);
+        return NextResponse.json({
+            message: "An error occurred during login"
         }, {
-            status: 400
-        })
-    await redisClient.set(`OTP:${user?.id}`, otp);
-    await transporter.sendMail({
-        to: email,
-        from: process.env.ADMIN_EMAIL,
-        text: `Your OTP is: ${otp} , valid for 5 minutes`
-    });
-
-    return NextResponse.json({
-        message: "Sucess"
-    })
-
+            status: 500
+        });
+    }
 }
