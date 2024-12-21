@@ -1,6 +1,8 @@
 Here’s the updated documentation draft with the additional points you provided:
 
 ---
+**NOTE: ADMIN EMAIL AND PASSWD: 
+sipanijai@gmail.com / 123456**
 
 ## File Management API
 
@@ -35,6 +37,7 @@ This API provides a robust file management system with functionality for uploadi
    ```
 2. Install dependencies:
    ```bash
+   rm -rf node_modules package-lock.json
    npm install
    ```
 3. Start the application:
