@@ -36,38 +36,44 @@ export default function FileList() {
 
   return (
     <div>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Link</TableHead>
-            <TableHead>Action</TableHead>
-            <TableHead>Delete</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {filesQuery?.data?.map((file: File) => (
-            <TableRow key={file?.slug}>
-              <TableCell>{file?.name}</TableCell>
-              <TableCell>{`${process.env.NEXT_PUBLIC_APPLICATION_URL}/download/${file?.slug}`}</TableCell>
-              <TableCell>
-                <Link href={`/download/${file?.slug}`} >
-                  <Button variant="outline" size="sm" className="ml-2">
-                    Download
-                  </Button>
-                </Link>
-              </TableCell>
-              <TableCell>
-                <Trash
-                  onClick={() => deleteMutation?.mutate(file?.id)}
-                  className='cursor-pointer'
-                  color='red' />
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+  <Table>
+    <TableHeader>
+      <TableRow>
+        <TableHead>Name</TableHead>
+        <TableHead>Link</TableHead>
+        <TableHead>Action</TableHead>
+        <TableHead>Delete</TableHead>
+      </TableRow>
+    </TableHeader>
+    <TableBody>
+      {filesQuery?.data?.map((file: File) => (
+        <TableRow key={file?.slug}>
+          <TableCell>{file?.name}</TableCell>
+          <TableCell>
+          <a href={`${process.env.NEXT_PUBLIC_APPLICATION_URL}/download/${file?.slug}`} className="text-blue-500 hover:text-blue-700 hover:underline cursor-pointer">
+            {`${process.env.NEXT_PUBLIC_APPLICATION_URL}/download/${file?.slug}`}
+          </a>
+        </TableCell>
+
+          <TableCell>
+            <Link href={`/download/${file?.slug}`} passHref>
+              <Button>
+                Download
+              </Button>
+            </Link>
+          </TableCell>
+          <TableCell>
+            <Trash
+              onClick={() => deleteMutation?.mutate(file?.id)}
+              className="cursor-pointer"
+              color="red"
+            />
+          </TableCell>
+        </TableRow>
+      ))}
+    </TableBody>
+  </Table>
+</div>
   )
 }
 
